@@ -109,7 +109,35 @@ syscall(struct trapframe *tf)
 				 (userptr_t)tf->tf_a1);
 		break;
 
-	    /* Add stuff here */
+       case SYS_open:
+      kprintf("Opening something I geuss\n");
+      err = 0;
+      break;      
+
+       case SYS_read:
+      kprintf("reading something I geuss\n");
+      err = 0;
+      break;   
+
+       case SYS_write:
+      kprintf("Writing something I geuss\n");
+      err = 0;
+      break; 
+
+       case SYS_lseek:
+      kprintf("seeking something I geuss\n");
+      err = 0;
+      break;  
+
+       case SYS_close:
+      kprintf("closing something I geuss\n");
+      err = 0;
+      break; 
+
+       case SYS_dup2:
+      kprintf("dup2 I geuss\n");
+      err = 0;
+      break; 
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
