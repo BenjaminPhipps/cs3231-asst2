@@ -15,7 +15,25 @@
 #include <syscall.h>
 #include <copyinout.h>
 
+#define maxOFTSize 128
 /*
  * Add your file-related functions here ...
+ put all OFT controlling shit in here
+ 
  */
 
+fileStruct * oft;
+//void createOFT();
+
+void createOFT() {
+    kprintf("intializing OFT here\n");
+    oft = (fileStruct *) kmalloc(sizeof(fileStruct)* maxOFTSize);
+    
+    for (int i =0; i < maxOFTSize; i++){
+        oft[i].permissions = -1;
+        oft[i].freeFlag = 0;
+        oft[i].refcount = 0;
+        oft[i].vnodePtr = NULL;
+    }
+    kprintf("intialized OFT\n");
+}

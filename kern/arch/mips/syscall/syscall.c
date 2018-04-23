@@ -35,7 +35,10 @@
 #include <thread.h>
 #include <current.h>
 #include <syscall.h>
+#include <kern/unistd.h>
+#include <kern/fcntl.h>
 
+int doOpenCall(uint32_t, int);
 
 /*
  * System call dispatcher.
@@ -111,7 +114,7 @@ syscall(struct trapframe *tf)
 
        case SYS_open:
       kprintf("Opening something I geuss\n");
-      err = 0;
+      err = doOpenCall(tf->tf_a0, tf->tf_a1);
       break;      
 
        case SYS_read:
@@ -172,6 +175,20 @@ syscall(struct trapframe *tf)
 	KASSERT(curthread->t_curspl == 0);
 	/* ...or leak any spinlocks */
 	KASSERT(curthread->t_iplhigh_count == 0);
+}
+
+
+int doOpenCall(uint32_t filename, int flags){ //will prob need to pass in more info when I figure out what this function actually needs
+        int error = 0;
+        kprintf("filename is %d, flags are %d \n", filename, flags);
+        if (flags == O_RDONLY){
+                kprintf("opening for read only\n");
+        } else if (flags == O_WRONLY){
+                kprintf("opening for write only\n");
+        } else if (flags == O_RDWR) {
+                kprintf("opening for read or write\n");
+        }
+        return error;
 }
 
 /*
