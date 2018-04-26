@@ -49,6 +49,7 @@
 #include <addrspace.h>
 #include <vnode.h>
 #include <limits.h>
+#include <kern/errno.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -325,12 +326,18 @@ proc_setas(struct addrspace *newas)
 	return oldas;
 }
 
-
-int findFreeIndex(void){
-   for (int i =0; i < OPEN_MAX; i++){
+/*
+ * Input: index of the OFT, stored in the process's fd array.
+ * Result: FD is stored the fdIndex variable.
+ * Return: 0 or Error.
+ */
+int proc_newFD (int OFTIndex, int32_t* fdIndex) {
+   for (int i = 0; i < OPEN_MAX; i++){
       if (curproc->fdArray[i] == -1) {
-         return i; //if an index is set to -1 then it is unused and can be reallocated to another file
+				 curproc->fdArray[i] = OFTIndex;
+				 *fdIndex = i; // store file descriptor "i" in fdIndex
+         return 0; // no error
       }
    }
-   return -1; //return -1 if no free indexes have been found
+   return EMFILE; // no free indexes have been found
 }

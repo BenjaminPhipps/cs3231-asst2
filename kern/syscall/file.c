@@ -91,8 +91,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
           return ENFILE;
         }
 
-        // error = proc_fd_new(OFTIndex, retval);
+        error = proc_newFD(OFTIndex, retval);
 
-				*retval = -1; // REMOVE - avoids compiler warnings
         return error;
 }
