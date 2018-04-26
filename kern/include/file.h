@@ -14,12 +14,9 @@
 /*
  * Put your function declarations and data types here ...
  */
-typedef struct _fileStruct {
-    int permissions;
-    int freeFlag;
-    int refcount;
-    struct vnode *vnodePtr;
-} fileStruct;
+typedef struct _fileStruct fileStruct;
 
-void createOFT(void);
+int createOFT(void);
+int openFile (userptr_t, int, mode_t, int32_t*);
+
 #endif /* _FILE_H_ */

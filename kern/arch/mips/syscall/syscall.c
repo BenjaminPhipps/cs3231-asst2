@@ -37,8 +37,7 @@
 #include <syscall.h>
 #include <kern/unistd.h>
 #include <kern/fcntl.h>
-
-int doOpenCall(uint32_t, int);
+#include <file.h>
 
 /*
  * System call dispatcher.
@@ -113,34 +112,38 @@ syscall(struct trapframe *tf)
 		break;
 
        case SYS_open:
-      kprintf("Opening something I geuss\n");
-      err = doOpenCall(tf->tf_a0, tf->tf_a1);
-      break;      
+      kprintf("SYS_open\n");
+      err = openFile (
+				(userptr_t)	tf->tf_a0,
+				(int)				tf->tf_a1,
+				(mode_t)		tf->tf_a2,
+										&retval);
+      break;
 
        case SYS_read:
-      kprintf("reading something I geuss\n");
+      kprintf("SYS_read\n");
       err = 0;
-      break;   
+      break;
 
        case SYS_write:
-      kprintf("Writing something I geuss\n");
+      kprintf("SYS_write\n");
       err = 0;
-      break; 
+      break;
 
        case SYS_lseek:
-      kprintf("seeking something I geuss\n");
+      kprintf("SYS_lseek\n");
       err = 0;
-      break;  
+      break;
 
        case SYS_close:
-      kprintf("closing something I geuss\n");
+      kprintf("SYS_close\n");
       err = 0;
-      break; 
+      break;
 
        case SYS_dup2:
-      kprintf("dup2 I geuss\n");
+      kprintf("SYS_dup2\n");
       err = 0;
-      break; 
+      break;
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
@@ -177,19 +180,6 @@ syscall(struct trapframe *tf)
 	KASSERT(curthread->t_iplhigh_count == 0);
 }
 
-
-int doOpenCall(uint32_t filename, int flags){ //will prob need to pass in more info when I figure out what this function actually needs
-        int error = 0;
-        kprintf("filename is %d, flags are %d \n", filename, flags);
-        if (flags == O_RDONLY){
-                kprintf("opening for read only\n");
-        } else if (flags == O_WRONLY){
-                kprintf("opening for write only\n");
-        } else if (flags == O_RDWR) {
-                kprintf("opening for read or write\n");
-        }
-        return error;
-}
 
 /*
  * Enter user mode for a newly forked process.
