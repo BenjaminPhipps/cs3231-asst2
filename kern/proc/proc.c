@@ -48,6 +48,7 @@
 #include <current.h>
 #include <addrspace.h>
 #include <vnode.h>
+#include <limits.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -82,6 +83,11 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+
+   for (int i =0; i<OPEN_MAX; i++){
+      proc->fdArray[i] = -1;
+   }
+   kprintf("process created and fd array initialised\n");
 	return proc;
 }
 
@@ -317,4 +323,14 @@ proc_setas(struct addrspace *newas)
 	proc->p_addrspace = newas;
 	spinlock_release(&proc->p_lock);
 	return oldas;
+}
+
+
+int findFreeIndex(void){
+   for (int i =0; i < OPEN_MAX; i++){
+      if (curproc->fdArray[i] == -1) {
+         return i; //if an index is set to -1 then it is unused and can be reallocated to another file
+      }
+   }
+   return -1; //return -1 if no free indexes have been found
 }
