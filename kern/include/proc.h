@@ -99,7 +99,9 @@ struct addrspace *proc_getas(void);
 /* Change the address space of the current process, and return the old one. */
 struct addrspace *proc_setas(struct addrspace *);
 
-int proc_newFD(int OFTIndex, int32_t* fdIndex);
+int proc_newFD(int OFTIndex, int32_t *fd);
+
+int proc_getOFTIndex (int32_t fd, int *retval);
 
 
 #endif /* _PROC_H_ */

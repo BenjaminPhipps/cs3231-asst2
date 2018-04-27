@@ -331,13 +331,23 @@ proc_setas(struct addrspace *newas)
  * Result: FD is stored the fdIndex variable.
  * Return: 0 or Error.
  */
-int proc_newFD (int OFTIndex, int32_t* fdIndex) {
+int proc_newFD (int OFTIndex, int32_t *fd) {
    for (int i = 0; i < OPEN_MAX; i++){
       if (curproc->fdArray[i] == -1) {
 				 curproc->fdArray[i] = OFTIndex;
-				 *fdIndex = i; // store file descriptor "i" in fdIndex
+				 *fd = i;
          return 0; // no error
       }
    }
    return EMFILE; // no free indexes have been found
+}
+
+int proc_getOFTIndex (int32_t fd, int *retval) {
+	// check valid fd
+	if (fd < 0 || fd >= OPEN_MAX) {
+		return EBADF;
+	}
+
+	*retval = curproc->fdArray[fd];
+	return 0;
 }

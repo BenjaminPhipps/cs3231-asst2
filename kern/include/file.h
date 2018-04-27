@@ -18,5 +18,6 @@ typedef struct _fileStruct fileStruct;
 
 int createOFT(void);
 int openFile (userptr_t, int, mode_t, int32_t*);
+int closeFile (int32_t fd);
 
 #endif /* _FILE_H_ */

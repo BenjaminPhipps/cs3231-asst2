@@ -72,13 +72,13 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
           return EFAULT;
         }
 
+        // TODO: obtain OFT mutex
+
         // place vnode in OFT
         int OFTIndex = -1;
-        // struct stat ._stat;
         for (int i = 0; i < OFT_MAX; i++) {
           if (oft[i].freeFlag == 0) {
-            // VOP_STAT(_vnode, &_stat);
-            // oft[i].permissions = _stat.st_mode;
+            oft[i].permissions = mode;
             oft[i].vnodePtr = _vnode;
             oft[i].refcount = 1;
             oft[i].freeFlag = 1;
@@ -87,6 +87,8 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
           }
         }
 
+        // TODO: release OFT mutex
+
         if (OFTIndex == -1) {
           return ENFILE;
         }
@@ -94,4 +96,40 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
         error = proc_newFD(OFTIndex, retval);
 
         return error;
+}
+
+int closeFile (int32_t fd) {
+  int error = 0;
+  int i;
+
+  error = proc_getOFTIndex(fd, &i);
+  if (error != 0) {
+    return error;
+  }
+  
+  // TODO: obtain OFT mutex
+
+  if (oft[i].freeFlag != 1) {
+    panic("OFT is inconsistent with process fd table\n");
+  }
+
+  // error = proc_removeFD(fd);
+  if (error != 0) {
+    return error;
+  }
+
+  if (oft[i].refcount == 1) {
+    // close file
+    vfs_close (oft[i].vnodePtr);
+    oft[i].freeFlag = 0;
+    oft[i].offset = 0;
+    oft[i].permissions = -1;
+    oft[i].vnodePtr = NULL;
+  }
+
+  oft[i].refcount--;
+
+  // TODO: release OFT mutex;
+
+  return error;
 }
