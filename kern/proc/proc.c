@@ -348,6 +348,10 @@ int proc_getOFTIndex (int32_t fd, int *retval) {
 		return EBADF;
 	}
 
+	if (curproc->fdArray[fd] == -1) {
+		return EBADF;
+	}
+
 	*retval = curproc->fdArray[fd];
 	return 0;
 }

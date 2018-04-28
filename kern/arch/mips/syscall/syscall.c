@@ -127,7 +127,11 @@ syscall(struct trapframe *tf)
 
        case SYS_write:
       kprintf("SYS_write\n");
-      err = 0;
+      err = writeToFile (
+				(int)						tf->tf_a0,
+				(const void *)	tf->tf_a1,
+				(size_t)				tf->tf_a2,
+												&retval);
       break;
 
        case SYS_lseek:

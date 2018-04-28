@@ -22,7 +22,7 @@ struct _fileStruct {
     mode_t permissions;
     int freeFlag;
     int refcount;
-    unsigned int offset;
+    off_t offset;
     struct vnode *vnodePtr;
 };
 
@@ -60,19 +60,21 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
                 kprintf("opening for write only\n");
         } else if (flags == O_RDWR) {
                 kprintf("opening for read or write\n");
+        } else {
+                kprintf("flags undetermined\n");
         }
 
         struct vnode *_vnode;
         error = vfs_open ((char *) filename, flags, mode, &_vnode);
         if (error != 0) {
-          // handle error
+          return error;
         }
 
         if (!VOP_ISSEEKABLE(_vnode)) {
           return EFAULT;
         }
 
-        // TODO: obtain OFT mutex
+        // obtain OFT mutex
         P(OFTMutex);
 
         // place vnode in OFT
@@ -88,7 +90,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
           }
         }
 
-        // TODO: release OFT mutex
+        // release OFT mutex
         V(OFTMutex);
         if (OFTIndex == -1) {
           return ENFILE;
@@ -108,7 +110,7 @@ int closeFile (int32_t fd) {
     return error;
   }
 
-  // TODO: obtain OFT mutex
+  // obtain OFT mutex
   P(OFTMutex);
 
   if (oft[i].freeFlag != 1) {
@@ -131,7 +133,53 @@ int closeFile (int32_t fd) {
 
   oft[i].refcount--;
 
-  // TODO: release OFT mutex;
+  // release OFT mutex;
   V(OFTMutex);
+  return error;
+}
+
+int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
+  int error = 0;
+
+  // check if directory or symlink
+  // kern/stat.h, kern/stattypes.h
+  // use vop_stat()
+
+  int i;
+  error = proc_getOFTIndex (fd, &i);
+  if (error != 0) {
+    return error;
+  }
+
+  kprintf("oft index = %d, vnodePtr = %p\n", i, oft[i].vnodePtr);
+
+  // check if opened with write permissions
+
+  void *kernbuf = (void *) kmalloc(nbytes);
+  if (kernbuf == NULL) {
+    return ENOSPC;
+  }
+
+  error = copyin((const_userptr_t) buf, kernbuf, nbytes);
+  if (error != 0) {
+    return error;
+  }
+
+  struct iovec iov;
+  struct uio myuio;
+
+  uio_kinit(&iov, &myuio, kernbuf, nbytes, oft[i].offset, UIO_WRITE);
+
+  myuio.uio_segflg = UIO_SYSSPACE;
+
+  error = VOP_WRITE (oft[i].vnodePtr, &myuio);
+  if (error != 0) {
+    return error;
+  }
+
+  *retval = (int32_t) (nbytes - (int) myuio.uio_resid);
+
+  kfree(kernbuf);
+
   return error;
 }
