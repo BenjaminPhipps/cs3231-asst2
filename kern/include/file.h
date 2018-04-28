@@ -21,5 +21,6 @@ struct semaphore *OFTMutex;
 int openFile (userptr_t, int, mode_t, int32_t*);
 int closeFile (int32_t fd);
 int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval);
+int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval);
 
 #endif /* _FILE_H_ */

@@ -102,57 +102,61 @@ syscall(struct trapframe *tf)
 	retval = 0;
 
 	switch (callno) {
-	    case SYS_reboot:
-		err = sys_reboot(tf->tf_a0);
-		break;
+	   case SYS_reboot:
+		   err = sys_reboot(tf->tf_a0);
+		   break;
 
-	    case SYS___time:
-		err = sys___time((userptr_t)tf->tf_a0,
+	   case SYS___time:
+		   err = sys___time((userptr_t)tf->tf_a0,
 				 (userptr_t)tf->tf_a1);
-		break;
+		   break;
 
-       case SYS_open:
-      kprintf("SYS_open\n");
-      err = openFile (
+      case SYS_open:
+         kprintf("SYS_open\n");
+         err = openFile (
 				(userptr_t)	tf->tf_a0,
 				(int)				tf->tf_a1,
 				(mode_t)		tf->tf_a2,
 										&retval);
-      break;
+         break;
 
-       case SYS_read:
-      kprintf("SYS_read\n");
-      err = 0;
-      break;
+      case SYS_read:
+         kprintf("SYS_read\n");
+         err = readFromFile (
+                (int)                        tf->tf_a0,
+                (void *)    tf->tf_a1,
+                (size_t)                tf->tf_a2,
+                                                &retval);
+         break;
 
-       case SYS_write:
-      //kprintf("SYS_write\n");
-      err = writeToFile (
+      case SYS_write:
+         //kprintf("SYS_write\n");
+         err = writeToFile (
 				(int)						tf->tf_a0,
 				(const void *)	tf->tf_a1,
 				(size_t)				tf->tf_a2,
 												&retval);
-      break;
+         break;
 
-       case SYS_lseek:
-      kprintf("SYS_lseek\n");
-      err = 0;
-      break;
+      case SYS_lseek:
+         kprintf("SYS_lseek\n");
+         err = 0;
+         break;
 
-       case SYS_close:
-      kprintf("SYS_close\n");
+      case SYS_close:
+         kprintf("SYS_close\n");
 			err = closeFile ((int32_t) tf->tf_a0);
-      break;
+         break;
 
-       case SYS_dup2:
-      kprintf("SYS_dup2\n");
-      err = 0;
-      break;
+      case SYS_dup2:
+         kprintf("SYS_dup2\n");
+         err = 0;
+         break;
 
-	    default:
-		kprintf("Unknown syscall %d\n", callno);
-		err = ENOSYS;
-		break;
+	   default:
+		   kprintf("Unknown syscall %d\n", callno);
+		   err = ENOSYS;
+		   break;
 	}
 
 

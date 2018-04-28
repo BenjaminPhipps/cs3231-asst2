@@ -214,3 +214,41 @@ int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
 
   return error;
 }
+
+int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
+    //kprintf("can you hear me?!?!?!\n");
+    int error = 0;
+    // check if directory or symlink
+    // kern/stat.h, kern/stattypes.h
+    // use vop_stat()
+    //kprintf("fd = %d, bufPTR = %p, nbytes: %d\n", fd, buf, nbytes);
+    if (nbytes == 0){
+        return error;
+    }
+
+    int i;
+    error = proc_getOFTIndex (fd, &i);
+    if (error != 0) {
+        kprintf("can't read, proc_getOFTIndex (fd, &i) error\n");  
+        return error;
+    }
+
+    struct iovec iov;
+    struct uio myuio;
+
+    //iov = buf;
+
+    uio_kinit(&iov, &myuio, buf, nbytes, oft[i].offset, UIO_READ);
+  //uio_kinit(&iov, &myuio, buf, sizeof(buf), 0, UIO_READ);
+    myuio.uio_segflg = UIO_SYSSPACE;
+    error = VOP_READ(oft[i].vnodePtr, &myuio);
+    //error = VOP_WRITE (oft[i].vnodePtr, &myuio);
+    if (error != 0) {
+        kprintf("can't read, VOP_READ (oft[i].vnodePtr, &myuio) error\n");  
+    return error;
+    }
+
+    *retval = (int32_t) (nbytes - (int) myuio.uio_resid);
+    return error;
+
+}
