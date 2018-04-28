@@ -103,5 +103,7 @@ int proc_newFD(int OFTIndex, int32_t *fd);
 
 int proc_getOFTIndex (int32_t fd, int *retval);
 
+int proc_removeFD (int32_t fd);
+
 
 #endif /* _PROC_H_ */

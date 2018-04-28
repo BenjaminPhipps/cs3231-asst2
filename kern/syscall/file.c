@@ -63,7 +63,6 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
 
         struct vnode *_vnode;
         error = vfs_open ((char *) filename, flags, mode, &_vnode);
-
         if (error != 0) {
           // handle error
         }
@@ -106,14 +105,14 @@ int closeFile (int32_t fd) {
   if (error != 0) {
     return error;
   }
-  
+
   // TODO: obtain OFT mutex
 
   if (oft[i].freeFlag != 1) {
     panic("OFT is inconsistent with process fd table\n");
   }
 
-  // error = proc_removeFD(fd);
+  error = proc_removeFD(fd);
   if (error != 0) {
     return error;
   }

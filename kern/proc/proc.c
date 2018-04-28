@@ -351,3 +351,13 @@ int proc_getOFTIndex (int32_t fd, int *retval) {
 	*retval = curproc->fdArray[fd];
 	return 0;
 }
+
+int proc_removeFD (int32_t fd) {
+	// check valid fd
+	if (fd < 0 || fd >= OPEN_MAX) {
+		return EBADF;
+	}
+
+	curproc->fdArray[fd] = -1;
+	return 0;
+}
