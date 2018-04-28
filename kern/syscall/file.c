@@ -33,6 +33,7 @@ struct _fileStruct {
  */
 
 fileStruct *oft;
+struct semaphore *OFTMutex;
 
 int createOFT() {
     oft = (fileStruct *) kmalloc(sizeof(fileStruct)* OFT_MAX);
@@ -73,6 +74,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
         }
 
         // TODO: obtain OFT mutex
+        P(OFTMutex);
 
         // place vnode in OFT
         int OFTIndex = -1;
@@ -88,7 +90,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) {
         }
 
         // TODO: release OFT mutex
-
+        V(OFTMutex);
         if (OFTIndex == -1) {
           return ENFILE;
         }
@@ -108,6 +110,7 @@ int closeFile (int32_t fd) {
   }
   
   // TODO: obtain OFT mutex
+  P(OFTMutex);
 
   if (oft[i].freeFlag != 1) {
     panic("OFT is inconsistent with process fd table\n");
@@ -130,6 +133,6 @@ int closeFile (int32_t fd) {
   oft[i].refcount--;
 
   // TODO: release OFT mutex;
-
+  V(OFTMutex);
   return error;
 }

@@ -144,6 +144,8 @@ boot(void)
   if (createOFT()) {
     panic ("Open File Table failed initialisation\n");
   }
+  kprintf("creating OFT mutex\n");
+  OFTMutex = sem_create("OFTMutex", 1);
   kprintf("Done\n");
 }
 
