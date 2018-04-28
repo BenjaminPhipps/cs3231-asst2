@@ -146,6 +146,7 @@ boot(void)
   }
   kprintf("creating OFT mutex\n");
   OFTMutex = sem_create("OFTMutex", 1);
+
   kprintf("Done\n");
 }
 

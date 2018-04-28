@@ -126,7 +126,7 @@ syscall(struct trapframe *tf)
       break;
 
        case SYS_write:
-      kprintf("SYS_write\n");
+      //kprintf("SYS_write\n");
       err = writeToFile (
 				(int)						tf->tf_a0,
 				(const void *)	tf->tf_a1,

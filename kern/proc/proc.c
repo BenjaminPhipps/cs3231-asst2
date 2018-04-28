@@ -85,11 +85,13 @@ proc_create(const char *name)
 	proc->p_cwd = NULL;
 
 
-   for (int i =0; i<OPEN_MAX; i++){
-      proc->fdArray[i] = -1;
-   }
-   kprintf("process created and fd array initialised\n");
-	return proc;
+    for (int i =0; i<OPEN_MAX; i++){
+        proc->fdArray[i] = -1;
+    }
+    proc->fdArray[1] = 1;
+    proc->fdArray[2] = 2;
+    kprintf("process created and fd array initialised\n");
+    return proc;
 }
 
 /*
@@ -349,6 +351,7 @@ int proc_getOFTIndex (int32_t fd, int *retval) {
 	}
 
 	if (curproc->fdArray[fd] == -1) {
+                kprintf("can't get fd %d\n", fd);
 		return EBADF;
 	}
 

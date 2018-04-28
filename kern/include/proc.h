@@ -73,6 +73,7 @@ struct proc {
 
 	/* add more material here as needed */
    int fdArray[OPEN_MAX];
+   //int * fdArray;
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */
