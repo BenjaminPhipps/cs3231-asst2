@@ -137,7 +137,7 @@ syscall(struct trapframe *tf)
 
        case SYS_close:
       kprintf("SYS_close\n");
-			err = closeFile ((int32_t) tf->tf_a0, &retval);
+			err = closeFile ((int32_t) tf->tf_a0);
       break;
 
        case SYS_dup2:
