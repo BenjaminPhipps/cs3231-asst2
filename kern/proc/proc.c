@@ -84,8 +84,12 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
-
-    for (int i =0; i<OPEN_MAX; i++){
+	proc->fdArray = (int *) kmalloc(sizeof(int)*OPEN_MAX);
+	if (proc->fdArray == NULL) {
+		kfree(proc);
+		return NULL;
+	}
+    for (int i = 0; i < OPEN_MAX; i++) {
         proc->fdArray[i] = -1;
     }
     proc->fdArray[1] = 1;
@@ -178,6 +182,7 @@ proc_destroy(struct proc *proc)
 	spinlock_cleanup(&proc->p_lock);
 
 	kfree(proc->p_name);
+	kfree(proc->fdArray);
 	kfree(proc);
 }
 
