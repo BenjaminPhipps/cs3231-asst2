@@ -170,8 +170,8 @@ int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
 
     // check if directory or symbolic link
     if (isDirectoryOrSymlink(oft[i].vnodePtr)) {
-      kprintf("ERROR: Can't write, file is incompatible to writing\n");
-      return EBADF;
+        kprintf("ERROR: Can't write, file is incompatible to writing\n");
+        return EBADF;
     }
 
     char *kernbuf = (char *) kmalloc(nbytes);
@@ -234,7 +234,7 @@ int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
 
     // check if directory or symbolic link
     if (isDirectoryOrSymlink(oft[i].vnodePtr)) {
-      kprintf("ERROR: Can't write, file is incompatible to writing\n");
+      kprintf("ERROR: Can't read, file is incompatible to writing\n");
       return EBADF;
     }
 
@@ -251,8 +251,68 @@ int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
     }
 
     *retval = (int32_t) (nbytes - (int) myuio.uio_resid);
-    return error;
+    return 0;
 }
+
+int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
+    int error = 0;
+
+    // obtain OFT mutex
+    P(OFTMutex);
+
+    int i;
+    error = proc_getOFTIndex (fd, &i);
+    if (error != 0) {
+          kprintf("ERROR: seekFilePos: proc_getOFTIndex error\n");
+          return error;
+    }
+
+    struct stat fileInfo;
+    if (VOP_STAT(oft[i].vnodePtr, &fileInfo) != 0) {
+        kprintf("ERROR: Can't seek, VOP_STAT error\n");
+        return EBADF;
+    }
+
+    // Check not console device or directory or symlink
+    // Check if a regular file
+    // Can we lseek on other types of files?
+    if ((fileInfo.st_mode & _S_IFMT) != _S_IFREG) {
+        kprintf("ERROR: Can't seek, file is incompatible to seeking\n");
+        return ESPIPE;
+    }
+
+    unsigned int fileSize = (unsigned int) fileInfo.st_size;
+    off_t offset;
+    kprintf("oft[i].offset = %d\n", (int) oft[i].offset);
+    if (whence == SEEK_SET) {
+        kprintf("SEEK_SET\npos=%d\n", (int) pos);
+        offset = pos;
+    } else if (whence == SEEK_CUR) {
+        kprintf("SEEK_CUR\npos=%d\n", (int) pos);
+        offset = oft[i].offset + pos;
+    } else if (whence == SEEK_END) {
+        kprintf("SEEK_END\npos=%d\n", (int) pos);
+        offset = (off_t) fileSize + pos;
+    } else {
+        kprintf ("ERROR: Whence invalid: %d\n", whence);
+        return EINVAL;
+    }
+
+    if (offset < 0) {
+        kprintf ("ERROR: The resulting seek position would be negative\n");
+        return EINVAL;
+    }
+
+    oft[i].offset = offset;
+    *retval = offset;
+    kprintf("Offset set to %d\n", (int) *retval);
+
+    // release OFT mutex;
+    V(OFTMutex);
+
+    return 0;
+}
+
 
 // check if vnode refers to a directory or symlink
 int isDirectoryOrSymlink (struct vnode *_vnode) {
@@ -265,3 +325,17 @@ int isDirectoryOrSymlink (struct vnode *_vnode) {
    }
    return 0;
 }
+
+/*
+// check if vnode refers to a regular file
+int isRegFile (struct vnode *_vnode) {
+   struct stat fileInfo;
+   if (VOP_STAT(_vnode, &fileInfo) != 0) {
+        return 1;
+   }
+   if ((fileInfo.st_mode & _S_IFMT) == _S_IFREG) {
+        return 0;
+   }
+   return 1;
+}
+*/

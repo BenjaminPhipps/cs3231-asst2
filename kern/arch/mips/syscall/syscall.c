@@ -38,6 +38,8 @@
 #include <kern/unistd.h>
 #include <kern/fcntl.h>
 #include <file.h>
+#include <endian.h>
+#include <copyinout.h>
 
 /*
  * System call dispatcher.
@@ -82,6 +84,8 @@ syscall(struct trapframe *tf)
 {
 	int callno;
 	int32_t retval;
+	int64_t retval64;
+	int retval_size = sizeof(int32_t);
 	int err;
 
 	KASSERT(curthread != NULL);
@@ -140,7 +144,25 @@ syscall(struct trapframe *tf)
 
       case SYS_lseek:
          kprintf("SYS_lseek\n");
-         err = 0;
+		 int fd = (int32_t) tf->tf_a0;
+		 // a1 unused
+
+		 // pos stored in a2/a3
+		 off_t pos;
+		 join32to64((uint32_t) tf->tf_a2, (uint32_t) tf->tf_a3, (uint64_t *) &pos);
+
+		 // fetch whence from the user-level stack,
+		 // starting at sp+16 to skip over the slots for the registerized values, with copyin().
+		 int whence;
+		 err = copyin((const_userptr_t) tf->tf_sp + 16, &whence, sizeof(uint32_t));
+		 if (err) {
+			 break;
+		 } else {
+			 err = seekFilePos (fd, pos, whence, (off_t *) &retval64);
+		 }
+
+		 retval_size = sizeof(int64_t);
+
          break;
 
       case SYS_close:
@@ -171,7 +193,12 @@ syscall(struct trapframe *tf)
 	}
 	else {
 		/* Success. */
-		tf->tf_v0 = retval;
+		if (retval_size == sizeof(int64_t)) {
+			// return in v0/v1
+			split64to32((uint64_t) retval64, (uint32_t *) &tf->tf_v0, (uint32_t *) &tf->tf_v1);
+		} else {
+			tf->tf_v0 = retval;
+		}
 		tf->tf_a3 = 0;      /* signal no error */
 	}
 
