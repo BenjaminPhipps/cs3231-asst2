@@ -45,18 +45,23 @@ int createOFT() {
         oft[i].offset = 0;
         oft[i].vnodePtr = NULL;
     }
-    oft[1].permissions = -1; //what do I do here?
+    oft[1].permissions = O_RDWR;
     oft[1].freeFlag = 1;
     oft[1].refcount = 1;
     oft[1].offset = 0;
     oft[1].vnodePtr = NULL;
 
+    oft[2].permissions = O_RDWR;
+    oft[2].freeFlag = 1;
+    oft[2].refcount = 1;
+    oft[2].offset = 0;
+    oft[2].vnodePtr = NULL;
+
     char c1[] = "con:";
     char c2[] = "con:";
 
-
-    vfs_open(c1,2,(mode_t) 0,&oft[1].vnodePtr);
-    vfs_open(c2,2,(mode_t) 0,&oft[2].vnodePtr);
+    vfs_open(c1,O_RDWR,(mode_t) 0,&oft[1].vnodePtr);
+    vfs_open(c2,O_RDWR,(mode_t) 0,&oft[2].vnodePtr);
     return 0;
 }
 
@@ -159,6 +164,7 @@ int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
           kprintf("ERROR: can't write, proc_getOFTIndex (fd, &i) error\n");
           return error;
     }
+    // kprintf("Writing to file with permissions: %d\n", oft[i].permissions);
 
     //kprintf("oft index = %d, vnodePtr = %p\n", i, oft[i].vnodePtr);
 
