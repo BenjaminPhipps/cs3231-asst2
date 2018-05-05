@@ -330,7 +330,7 @@ int duplicateTwo(int oldFd, int newFd, int *retval) {
     int error = 0;
     kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
 
-    if (curproc->fdArray[oldFd] < 0 || 0 > newFd || newFd > OPEN_MAX) return EBADF;
+    if (curproc->fdArray[oldFd] < 0 || 0 > newFd || newFd >= OPEN_MAX) return EBADF;
 
     if (oldFd == newFd) { //do nothing
         *retval = newFd;
