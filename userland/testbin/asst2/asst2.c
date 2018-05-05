@@ -130,7 +130,7 @@ main(int argc, char * argv[])
         printf("* reading entire file into buffer \n");
         i = 0;
 
-        r = lseek(fd2, 0, SEEK_SET);        
+        r = lseek(fd2, 0, SEEK_SET);
 
         do  {
                 printf("* attempting read of %d bytes\n", MAX_BUF -i);
@@ -156,25 +156,42 @@ main(int argc, char * argv[])
         } while (k < i);
         printf("* file content okay for dup2\n");
 
+        close(fd2);
+
 ///////////////////////////////////////testing file permissions now
 
         int fd3 = open("test.file", O_RDONLY);
 
-        if (fd3 == -1) printf("Opening file error of some kind");
+        if (fd3 == -1) printf("* Opening file error of some kind");
 
 
         printf("* writing test string to read only file, this should fail\n");
         r = write(fd3, teststr, strlen(teststr));
         printf("* wrote %d bytes\n", r);
         if (r < 0) {
-                printf("epected ERROR writing file: %s\n", strerror(errno));
-                exit(1);
+                printf("* expected ERROR writing file: %s\n", strerror(errno));
+        } else {
+            printf("* Error did not occur\n");
+            exit(1);
         }
+        printf("* closing file\n");
+        close(fd3);
 
-        
-        
+        int fd4 = open("test.file", O_WRONLY);
+
+        if (fd4 == -1) printf("* Opening file error of some kind");
+
+        printf("* reading test string from write-only file, this should fail\n");
+        r = read(fd3, &buf, 1);
+        printf("* read %d bytes\n", r);
+        if (r < 0) {
+                printf("* expected ERROR writing file: %s\n", strerror(errno));
+        } else {
+            printf("* ERROR: Error did not occur\n");
+            exit(1);
+        }
+        printf("* closing file\n");
+        close(fd4);
 
         return 0;
 }
-
-
