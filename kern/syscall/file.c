@@ -107,7 +107,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) { //r
 
         error = proc_newFD(OFTIndex, retval);
         if (error == 0){
-            kprintf("opened file successfully: OFT index = %d, fd = %d\n", OFTIndex, *retval);
+            // kprintf("opened file successfully: OFT index = %d, fd = %d, flags=%d\n", OFTIndex, *retval, flags);
         }
         return error;
 }
@@ -169,8 +169,9 @@ int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
     //kprintf("oft index = %d, vnodePtr = %p\n", i, oft[i].vnodePtr);
 
     // check if opened with write permissions
-    if ((oft[i].permissions & O_WRONLY) == 0 && (oft[i].permissions & O_RDWR) == 0) { // not sure if correct
+    if ((oft[i].permissions & O_ACCMODE) != O_WRONLY && (oft[i].permissions & O_ACCMODE) != O_RDWR) {
           kprintf("ERROR: Can't write, file is not opened with write permissions\n");
+          kprintf("Permissions = %d\n", oft[i].permissions);
           return EBADF;
     }
 
@@ -230,7 +231,7 @@ int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
     }
 
     // check if opened with read permissions
-    if ((oft[i].permissions & O_WRONLY) != 0 && (oft[i].permissions & O_RDWR) == 0) { // not sure if correct
+    if ((oft[i].permissions & O_ACCMODE) != O_RDONLY && (oft[i].permissions & O_ACCMODE) != O_RDWR) {
           kprintf("ERROR: Can't read, file is not opened with read permissions\n");
           kprintf("Permissions = %d\n", oft[i].permissions);
           return EBADF;
@@ -315,7 +316,7 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
 
 int duplicateTwo(int oldFd, int newFd, int *retval) {
     int error = 0;
-    kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
+    // kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
 
     if (oldFd == newFd) { //do nothing
         *retval = newFd;
