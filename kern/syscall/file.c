@@ -223,14 +223,12 @@ int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
           return error;
     }
 
-    /*
     // check if opened with read permissions
-    if ((oft[i].permissions & O_RDONLY) == 0 && (oft[i].permissions & O_RDWR) == 0) { // not sure if correct
+    if ((oft[i].permissions & O_RDONLY) != O_RDONLY && (oft[i].permissions & O_RDWR) != O_RDWR) { // not sure if correct
           kprintf("ERROR: Can't read, file is not opened with read permissions\n");
           kprintf("Permissions = %d\n", oft[i].permissions);
           return EBADF;
     }
-    */
 
     // check if directory or symbolic link
     if (isDirectoryOrSymlink(oft[i].vnodePtr)) {
