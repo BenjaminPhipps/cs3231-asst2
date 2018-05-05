@@ -283,15 +283,11 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
 
     unsigned int fileSize = (unsigned int) fileInfo.st_size;
     off_t offset;
-    kprintf("oft[i].offset = %d\n", (int) oft[i].offset);
     if (whence == SEEK_SET) {
-        kprintf("SEEK_SET\npos=%d\n", (int) pos);
         offset = pos;
     } else if (whence == SEEK_CUR) {
-        kprintf("SEEK_CUR\npos=%d\n", (int) pos);
         offset = oft[i].offset + pos;
     } else if (whence == SEEK_END) {
-        kprintf("SEEK_END\npos=%d\n", (int) pos);
         offset = (off_t) fileSize + pos;
     } else {
         kprintf ("ERROR: Whence invalid: %d\n", whence);
@@ -305,7 +301,7 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
 
     oft[i].offset = offset;
     *retval = offset;
-    kprintf("Offset set to %d\n", (int) *retval);
+    // kprintf("Offset set to %d\n", (int) *retval);
 
     // release OFT mutex;
     V(OFTMutex);
@@ -316,8 +312,6 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
 int duplicateTwo(int oldFd, int newFd, int *retval) {
     int error = 0;
     kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
-
-    if (curproc->fdArray[oldFd] > 0 && 0 <= newFd && newFd < OPEN_MAX) return EBADF;
 
     if (oldFd == newFd) { //do nothing
         *retval = newFd;

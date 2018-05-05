@@ -120,7 +120,42 @@ main(int argc, char * argv[])
 
         printf("* file lseek  okay\n");
         printf("* closing file\n");
+
+////////////////////////////////////////////////////////////////////testing dup2 now
+        int fd2 = 5;
+        dup2(fd, fd2);
         close(fd);
+
+        printf("* testing dup2 now \n");
+        printf("* reading entire file into buffer \n");
+        i = 0;
+
+        r = lseek(fd2, 0, SEEK_SET);        
+
+        do  {
+                printf("* attempting read of %d bytes\n", MAX_BUF -i);
+                r = read(fd2, &buf[i], MAX_BUF - i);
+                printf("* read %d bytes\n", r);
+                i += r;
+        } while (i < MAX_BUF && r > 0);
+
+        printf("* reading complete\n");
+        if (r < 0) {
+                printf("ERROR reading file: %s\n", strerror(errno));
+                exit(1);
+        }
+        k = j = 0;
+        r = strlen(teststr);
+        do {
+                if (buf[k] != teststr[j]) {
+                        printf("ERROR  file contents mismatch\n");
+                        exit(1);
+                }
+                k++;
+                j = k % r;
+        } while (k < i);
+        printf("* file content okay for dup2\n");
+        
 
         return 0;
 }

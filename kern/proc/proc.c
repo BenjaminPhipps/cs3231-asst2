@@ -52,6 +52,8 @@
 #include <kern/errno.h>
 #include <file.h>
 
+#define IS_VALID_FD(fd) (0 <= fd && fd < OPEN_MAX)
+
 /*
  * The process for the kernel; this holds all the kernel-only threads.
  */
@@ -351,8 +353,7 @@ int proc_newFD (int OFTIndex, int32_t *fd) {
 }
 
 int proc_getOFTIndex (int32_t fd, int *retval) {
-	// check valid fd
-	if (fd < 0 || fd >= OPEN_MAX) {
+	if (!(IS_VALID_FD(fd))) {
 		return EBADF;
 	}
 
@@ -366,8 +367,7 @@ int proc_getOFTIndex (int32_t fd, int *retval) {
 }
 
 int proc_removeFD (int32_t fd) {
-	// check valid fd
-	if (fd < 0 || fd >= OPEN_MAX) {
+	if (!(IS_VALID_FD(fd))) {
 		return EBADF;
 	}
 
@@ -375,8 +375,11 @@ int proc_removeFD (int32_t fd) {
 	return 0;
 }
 
-int proc_dupFD(int32_t oldFd, int32_t newfd, int *retval) {
-	// check if oldfd and newfd are valid
+int proc_dupFD(int32_t oldFd, int32_t newFd, int *retval) {
+
+	if (!(IS_VALID_FD(oldFd)) || !(IS_VALID_FD(newFd)) || curproc->fdArray[oldFd] < 0) {
+		return EBADF;
+	}
 
 	if (curproc->fdArray[newFd] > 0)
 		closeFile((int32_t) newFd);
