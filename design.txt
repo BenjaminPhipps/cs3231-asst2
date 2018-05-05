@@ -1,1 +1,9 @@
-Place your design document here.
+General Design
+
+Responsibilities of Different Files i.e where we did what
+
+Error Checking
+
+File Permissions
+
+Concurrency Considerations
