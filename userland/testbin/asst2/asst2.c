@@ -155,6 +155,23 @@ main(int argc, char * argv[])
                 j = k % r;
         } while (k < i);
         printf("* file content okay for dup2\n");
+
+///////////////////////////////////////testing file permissions now
+
+        int fd3 = open("test.file", O_RDONLY);
+
+        if (fd3 == -1) printf("Opening file error of some kind");
+
+
+        printf("* writing test string to read only file, this should fail\n");
+        r = write(fd3, teststr, strlen(teststr));
+        printf("* wrote %d bytes\n", r);
+        if (r < 0) {
+                printf("epected ERROR writing file: %s\n", strerror(errno));
+                exit(1);
+        }
+
+        
         
 
         return 0;
