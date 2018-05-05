@@ -177,17 +177,21 @@ main(int argc, char * argv[])
         printf("* closing file\n");
         close(fd3);
 
+//////////////////////////////////////////////////////////////////Marks test
+
+        printf("Marks test from here on 123\n");
+
         int fd4 = open("test.file", O_WRONLY);
 
         if (fd4 == -1) printf("* Opening file error of some kind");
 
         printf("* reading test string from write-only file, this should fail\n");
-        r = read(fd3, &buf, 1);
+        r = read(fd4, &buf, 1);
         printf("* read %d bytes\n", r);
         if (r < 0) {
                 printf("* expected ERROR writing file: %s\n", strerror(errno));
         } else {
-            printf("* ERROR: Error did not occur\n");
+            printf("* ERROR: Error did not occur 123\n");
             exit(1);
         }
         printf("* closing file\n");
