@@ -85,7 +85,7 @@ syscall(struct trapframe *tf)
 	int callno;
 	int32_t retval;
 	int64_t retval64;
-	int retval_size = sizeof(int32_t);
+	int retval_size = sizeof(int32_t); // default size is 32 bits
 	int err;
 
 	KASSERT(curthread != NULL);

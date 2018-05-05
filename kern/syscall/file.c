@@ -313,50 +313,41 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
     return 0;
 }
 
-
-// check if vnode refers to a directory or symlink
-int isDirectoryOrSymlink (struct vnode *_vnode) {
-   struct stat fileInfo;
-   if (VOP_STAT(_vnode, &fileInfo) != 0) {
-        return 1;
-   }
-   if ((fileInfo.st_mode & _S_IFMT) == _S_IFDIR || (fileInfo.st_mode & _S_IFMT) == _S_IFLNK) {
-        return 1;
-   }
-   return 0;
-}
-
 int duplicateTwo(int oldFd, int newFd, int *retval) {
     int error = 0;
     kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
-    
+
     if (curproc->fdArray[oldFd] > 0 && 0 <= newFd && newFd < OPEN_MAX) return EBADF;
 
     if (oldFd == newFd) { //do nothing
         *retval = newFd;
-        return error;
+        return 0;
     }
 
-    if (curproc->fdArray[newFd] > 0)
-        closeFile((int32_t) newFd);
+    int i = -1;
+    error = proc_dupFD(oldFd, newFd, &i);
+    if (error != 0) {
+        return error;
+    } else if (i < 0) {
+        return EBADF;
+    }
+
     P(OFTMutex);
-    curproc->fdArray[newFd] = curproc->fdArray[oldFd];
-    oft[curproc->fdArray[newFd]].refcount++;
+    oft[i].refcount++;
     V(OFTMutex);
+
     *retval = newFd;
-    return error;
+    return 0;
 }
 
-/*
-// check if vnode refers to a regular file
-int isRegFile (struct vnode *_vnode) {
-   struct stat fileInfo;
-   if (VOP_STAT(_vnode, &fileInfo) != 0) {
+// check if vnode refers to a directory or symlink
+int isDirectoryOrSymlink (struct vnode *_vnode) {
+    struct stat fileInfo;
+    if (VOP_STAT(_vnode, &fileInfo) != 0) {
         return 1;
-   }
-   if ((fileInfo.st_mode & _S_IFMT) == _S_IFREG) {
-        return 0;
-   }
-   return 1;
+    }
+    if ((fileInfo.st_mode & _S_IFMT) == _S_IFDIR || (fileInfo.st_mode & _S_IFMT) == _S_IFLNK) {
+        return 1;
+    }
+    return 0;
 }
-*/

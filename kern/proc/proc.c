@@ -50,6 +50,7 @@
 #include <vnode.h>
 #include <limits.h>
 #include <kern/errno.h>
+#include <file.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -371,5 +372,18 @@ int proc_removeFD (int32_t fd) {
 	}
 
 	curproc->fdArray[fd] = -1;
+	return 0;
+}
+
+int proc_dupFD(int32_t oldFd, int32_t newfd, int *retval) {
+	// check if oldfd and newfd are valid
+
+	if (curproc->fdArray[newFd] > 0)
+		closeFile((int32_t) newFd);
+
+	int OFTIndex = curproc->fdArray[oldFd];
+	curproc->fdArray[newFd] = OFTIndex;
+	*retval = OFTIndex;
+
 	return 0;
 }

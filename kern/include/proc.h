@@ -106,5 +106,7 @@ int proc_getOFTIndex (int32_t fd, int *retval);
 
 int proc_removeFD (int32_t fd);
 
+int proc_dupFD(int32_t oldFd, int32_t newfd, int *retval);
+
 
 #endif /* _PROC_H_ */
