@@ -326,6 +326,27 @@ int isDirectoryOrSymlink (struct vnode *_vnode) {
    return 0;
 }
 
+int duplicateTwo(int oldFd, int newFd, int *retval) {
+    int error = 0;
+    kprintf("dup2 called, oldFd is %d, newFd is %d\n",oldFd, newFd);
+    
+    if (curproc->fdArray[oldFd] > 0 && 0 <= newFd && newFd < OPEN_MAX) return EBADF;
+
+    if (oldFd == newFd) { //do nothing
+        *retval = newFd;
+        return error;
+    }
+
+    if (curproc->fdArray[newFd] > 0)
+        closeFile((int32_t) newFd);
+    P(OFTMutex);
+    curproc->fdArray[newFd] = curproc->fdArray[oldFd];
+    oft[curproc->fdArray[newFd]].refcount++;
+    V(OFTMutex);
+    *retval = newFd;
+    return error;
+}
+
 /*
 // check if vnode refers to a regular file
 int isRegFile (struct vnode *_vnode) {

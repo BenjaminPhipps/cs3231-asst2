@@ -23,5 +23,6 @@ int closeFile (int32_t fd);
 int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval);
 int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval);
 int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval);
+int duplicateTwo(int oldFd, int newFd, int *retval);
 
 #endif /* _FILE_H_ */
