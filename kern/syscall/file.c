@@ -82,7 +82,6 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) { //r
                 return EFAULT;
         }
 
-        // obtain OFT mutex
         P(OFTMutex);
 
         // place vnode in OFT
@@ -201,8 +200,9 @@ int writeToFile (int32_t fd, const void *buf, size_t nbytes, int32_t *retval) {
     uio_kinit(&iov, &myuio, kernbuf, nbytes, oft[i].offset, UIO_WRITE);
 
     myuio.uio_segflg = UIO_SYSSPACE;
-
+    P(OFTMutex);
     error = VOP_WRITE (oft[i].vnodePtr, &myuio);
+    V(OFTMutex);
     if (error != 0) {
           kprintf("ERROR: can't write, VOP_WRITE error\n");
           return error;
@@ -249,7 +249,9 @@ int readFromFile (int32_t fd, void *buf, size_t nbytes, int32_t *retval){
     uio_kinit(&iov, &myuio, buf, nbytes, oft[i].offset, UIO_READ);
 
     myuio.uio_segflg = UIO_SYSSPACE;
+    P(OFTMutex);
     error = VOP_READ(oft[i].vnodePtr, &myuio);
+    V(OFTMutex);
     if (error != 0) {
           kprintf("ERROR: can't read, VOP_READ error\n");
           return error;
@@ -263,7 +265,7 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
     int error = 0;
 
     // obtain OFT mutex
-    P(OFTMutex);
+    //P(OFTMutex);
 
     int i;
     error = proc_getOFTIndex (fd, &i);
@@ -288,6 +290,8 @@ int seekFilePos (int32_t fd, off_t pos, int whence, off_t *retval) {
 
     unsigned int fileSize = (unsigned int) fileInfo.st_size;
     off_t offset;
+
+    P(OFTMutex);
     if (whence == SEEK_SET) {
         offset = pos;
     } else if (whence == SEEK_CUR) {
