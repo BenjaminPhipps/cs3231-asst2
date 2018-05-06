@@ -1,9 +1,116 @@
+**************************
 General Design
+**************************
 
-Responsibilities of Different Files i.e where we did what
+An Open File Table (OFT) stores details of all the opened files in the system, including 
+pointers to the underlying vnode and other associated information. The OFT is only 
+accessed/manipulated by the functions in file.c/h, implementing an abstract data type.
 
+Each process stores its own file descriptor table (fd table), an array of file descriptors 
+(fd’s) that each refer to an open file inside the OFT. The fd tables are only accessed/
+manipulated by the functions in proc.c/h, implementing an abstract data type.
+
+The Open File Table (OFT) consists a list of fileStructs. A fileStruct contains an integer 
+which stores the permissions flags, a boolean flag for determining whether it is currently 
+in use, an integer to count the current number of references to the fileStruct and a 
+pointer to the underlying vnode itself.
+
+There are multiple reasons for separating the storage of open file details (OFT) and the 
+process’s file descriptor handles (fd table): 
+It provides a layer of abstraction between the process and the OFT which stops other 
+programs from accessing files of other processes. 
+Allows distinct processes to open the same file at different offsets and with different 
+permissions.
+Allows a file handle to be duplicated, and their file positions to remain synchronised.
+
+
+*********************************************************
+Responsibilities of different files i.e where we did what
+*********************************************************
+
+- main.c: calls file.c function to initialise OFT and sets up stdin and stderr within that OFT.
+
+- file.c/file.h: managed the main syscall logic and all OFT operations
+
+- syscall.c: handled the initial interpretation of a syscall and calls the appropriate function 
+with the appropriate arguments
+
+- proc.c/proc.h: functionality for initialising the FD array, initialising stdin and stderr, 
+getting the OFT index value stored at a given index of the FD and copying a given FD index into 
+another given FD index for use in the syscall dup2.
+
+
+**************************
+Syscall Design:
+**************************
+
+open()
+In open we need to open a file for reading/writing and return its assigned position 
+in the process’s FD array. First acquires the OFT mutex to guarantee mutual exclusion when 
+accessing shared resources such as the vfs. Next vfs open is called with the necessary arguments. 
+Errors are checked by the return value of vfs_open and also by calling the VOP_ISSEEKABLE() 
+function and relevant errors are returned if they are encountered. Next we find room on the OFT 
+for the new vnode, if room is found then the vnode is assigned as a pointer, and the freeFlag, 
+refcount and permissions are assigned. Next the OFT Mutex is released and we create a new entry 
+on the process’s FD array with the index to the OFT position which the file was assigned to and 
+returns the file descriptor.
+
+close()
+In close we need to close the file associated with a given index in the FD array. First we check 
+that an entry exists at the specified location. Next we obtain the OFT mutex and check that the 
+OFT contains the relevant vnode and remove the entry from the FD array. Next we check if the 
+refcount of the fileStruct in the OFT is 1 and if so we set it to free, call vfs_close and 
+assign all elements to their empty value. If the refcount is not equal to 1 then we decrement it, 
+release the mutex and return.
+
+read()
+In read we need to read a sequence of bytes from the file specified in the arguments to a buffer 
+in user-level memory. We first retrieve the OFT index for the given file descriptor, then check 
+that the file has been opened with read permissions. After checking that the file is readable 
+(not a directory or a symbolic link), we read the bytes from file at the current offset to the 
+buffer.
+
+write() 
+In write we need to write a sequence of bytes (defined in user-level memory) to the file 
+specified in the arguments. After we retrieve the OFT index for the given file descriptor, we 
+check that the file has been opened with write permissions. We then check that the file is 
+writeable (not a directory or a symbolic link). Next, we copy the sequence of bytes from user-
+level memory to kernel-level memory, and then write the bytes to the file at the current offset.
+
+lseek()
+In lseek we have to change the file’s offset according to the parameters given. The parameters 
+are passed in as 64-bit values in the registers and on the user-stack. After retrieving these 
+arguments, we get the OFT index for the supplied fd, and then we get some information about the 
+file through stat(). This allows us to check file type and obtain the length of the file. The 
+offset is then changed according to the arguments supplied.
+
+dup2() 
+In dup2 we attempt to copy an old FD into a new FD so that they both point to the same 
+underlying component. First we check if the old and new FD are equal, if this is true we 
+immediately return. Next we call a function called proc_dupFD which checks that both FD’s are 
+in a valid range, closes a file associated with new FD if necessary and assigns old FD to new FD, 
+the function the returns the value of old FD.  Next the ref count of the relevant OFT fileStruct 
+is incremented and retval is assigned to new FD and the function returns.
+
+
+**************************
 Error Checking
+**************************
 
+- Frequent checks ensure that the file descriptor table and OFT are in alignment
+- Any errors returned by internal functions are retrieved and passed on immediately to the user.
+
+
+**************************
 File Permissions
+**************************
 
+-We store file permissions inside the OFT and check them before each read and write into the file.
+
+
+**************************
 Concurrency Considerations
+**************************
+
+-we use a semaphore to guarantee mutual exclusion for any read or write operation on the OFT.
+
