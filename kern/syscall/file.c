@@ -69,7 +69,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) { //r
         int error = 0;
         //kprintf("filename is %s, flags are %d \n", (char *) filename, flags);
         // kprintf("Open flags are %d\n", flags);
-
+        P(OFTMutex);
         struct vnode *_vnode;
         error = vfs_open ((char *) filename, flags, mode, &_vnode);
         if (error != 0) {
@@ -82,7 +82,7 @@ int openFile (userptr_t filename, int flags, mode_t mode, int32_t* retval) { //r
                 return EFAULT;
         }
 
-        P(OFTMutex);
+
 
         // place vnode in OFT
         int OFTIndex = -1;
