@@ -116,7 +116,7 @@ syscall(struct trapframe *tf)
 		   break;
 
       case SYS_open:
-         kprintf("SYS_open\n");
+         //kprintf("SYS_open\n");
          err = openFile (
 				(userptr_t)	tf->tf_a0,
 				(int)				tf->tf_a1,
@@ -125,7 +125,7 @@ syscall(struct trapframe *tf)
          break;
 
       case SYS_read:
-         kprintf("SYS_read\n");
+         //kprintf("SYS_read\n");
          err = readFromFile (
                 (int)                        tf->tf_a0,
                 (void *)    tf->tf_a1,
@@ -143,8 +143,11 @@ syscall(struct trapframe *tf)
          break;
 
       case SYS_lseek:
-         kprintf("SYS_lseek\n");
-		 int fd = (int32_t) tf->tf_a0;
+         //kprintf("SYS_lseek\n");
+          if (0){
+              kprintf("This should never print and is here because the compiler is stupid\n");
+          }
+         int fd = (int32_t) tf->tf_a0;
 		 // a1 unused
 
 		 // pos stored in a2/a3
@@ -166,12 +169,12 @@ syscall(struct trapframe *tf)
          break;
 
       case SYS_close:
-         kprintf("SYS_close\n");
+         //kprintf("SYS_close\n");
 			err = closeFile ((int32_t) tf->tf_a0);
          break;
 
       case SYS_dup2:
-         kprintf("SYS_dup2\n");
+         //kprintf("SYS_dup2\n");
          err = duplicateTwo((int)tf->tf_a0, (int) tf->tf_a1, &retval);
          break;
 
